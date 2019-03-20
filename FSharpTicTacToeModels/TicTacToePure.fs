@@ -56,9 +56,7 @@ namespace QUT
         //     seq [seq[(0,0);(0,1)];seq[(1,0);(1,1)];seq[(0,0);(1,0)];seq[(0,1);(1,1)];seq[(0,0);(1,1)];seq[(0,1);(1,0)]]
         // The order of the lines and the order of the squares within each line does not matter
         let Lines (size:int) : seq<seq<int*int>> = 
-            let allPossibleCoordinates = seq { for row in 0 .. size-1 do
-                                                    for col in 0 .. size-1 do
-                                                        yield(row, col)}
+            let allPossibleCoordinates = seq { for row in 0 .. size-1 do for col in 0 .. size-1 do yield(row, col)}
             let getLine filter : seq<int*int> =
                 allPossibleCoordinates
                 |> Seq.filter filter
