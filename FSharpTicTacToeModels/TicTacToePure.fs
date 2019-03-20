@@ -3,25 +3,15 @@ namespace QUT
     module FSharpPureTicTacToeModel =
     
         // type to represent the two players: Noughts and Crosses
-        type Player = Nought | Cross | None
-        
-        //helper functions
-        let rec map f L =
-            match L with
-            | [] -> []
-            | head::tail -> (f head) :: (map f tail)
+        type Player = Nought | Cross 
 
-        let rec reduce op L =
-            match L with
-            | [] -> raise(System.ArgumentException("input list is empty"))
-            | [head] -> raise(System.ArgumentException("expected more than one list item"))
-            | head::tail -> op head (reduce op tail)
-
-        let generateNewBoard size =
-            [(0,1,None);
-            (0,2,None);
-            (1,0,None)]
-
+        // Returns a string to represent player piece on the board
+        // "X" for Cross, "O" for Nought and "" for none
+        let getPiece (player: Player) : string =
+            match player with
+            | Nought -> "O"
+            | Cross -> "X"
+            | _ -> ""
             
         // type to represent a single move specified using (row, column) coordinates of the selected square
         type Move = 
@@ -32,7 +22,7 @@ namespace QUT
 
         // type to represent the current state of the game, including the size of the game (NxN), who's turn it is and the pieces on the board
         type GameState = 
-            { Turn: Player; Size: int; Board: list<int*int*Player>}
+            { Turn: Player; Size: int; Board: list<int*int*string>}
             interface ITicTacToeGame<Player> with
                 member this.Turn with get()    = this.Turn
                 member this.Size with get()    = this.Size
@@ -41,7 +31,23 @@ namespace QUT
 
         let CreateMove row col = {Row = row; Column = col}
 
-        let ApplyMove (oldState:GameState) (move: Move) = raise (System.NotImplementedException("CreateMove"))
+        let ApplyMove (oldState:GameState) (move: Move) = 
+            let currentPlayerTurn = oldState.Turn
+            let newPlayerTurn =
+                match oldState.Turn with
+                | Nought -> Cross
+                | Cross -> Nought
+            let newBoardState =
+                oldState.Board
+                |> List.map (fun (row,col,piece) -> 
+                    if row = move.Row && col = move.Column 
+                    then (row,col, getPiece currentPlayerTurn) 
+                    else (row,col,piece))
+            {
+            Turn = newPlayerTurn; 
+            Size = oldState.Size; 
+            Board = newBoardState
+            }
 
         // Returns a sequence containing all of the lines on the board: Horizontal, Vertical and Diagonal
         // The number of lines returned should always be (size*2+2)
@@ -50,17 +56,18 @@ namespace QUT
         //     seq [seq[(0,0);(0,1)];seq[(1,0);(1,1)];seq[(0,0);(1,0)];seq[(0,1);(1,1)];seq[(0,0);(1,1)];seq[(0,1);(1,0)]]
         // The order of the lines and the order of the squares within each line does not matter
         let Lines (size:int) : seq<seq<int*int>> = 
-            let allPossibleCoordinates = Seq.toList <| seq { for row in 0 .. size-1 do
-                                                                for col in 0 .. size-1 do
-                                                                    yield(row, col)}
-            let getLine filter coordinates: seq<int*int> =
-                coordinates
-                |> List.filter filter
-                |> List.toSeq
+            let allPossibleCoordinates = seq { for row in 0 .. size-1 do
+                                                    for col in 0 .. size-1 do
+                                                        yield(row, col)}
+            let getLine filter : seq<int*int> =
+                allPossibleCoordinates
+                |> Seq.filter filter
 
-            seq { for i in 0 .. size-1 do yield getLine (fun (a,b) -> a = i) allPossibleCoordinates}
-
-        Lines 3
+            let horizontalLines = seq { for i in 0 .. size-1 do yield getLine (fun (a,b) -> a = i)}
+            let verticalLines = seq { for i in 0 .. size-1 do yield getLine (fun (a,b) -> b = i)}
+            let diagonalLeftToRight = seq { for i in 0 .. size-1 do yield getLine (fun (a,b) -> a = b)}
+            let diagonalRightToLeft = seq { for i in 0 .. size-1 do yield getLine (fun (a,b) -> a + b = size-1)}
+            Seq.concat [ horizontalLines; verticalLines; diagonalLeftToRight; diagonalRightToLeft]
 
         // Checks a single line (specified as a sequence of (row,column) coordinates) to determine if one of the players
         // has won by filling all of those squares, or a Draw if the line contains at least one Nought and one Cross
@@ -68,7 +75,12 @@ namespace QUT
 
         let GameOutcome game = raise (System.NotImplementedException("GameOutcome"))
 
-        let GameStart (firstPlayer:Player) size = {Turn = firstPlayer; Size = size; Board = generateNewBoard size}
+        let GameStart (firstPlayer:Player) size = 
+            { 
+            Turn = firstPlayer; 
+            Size = size; 
+            Board = Seq.toList <| seq {for row in 0 ..size-1 do for col in 0 .. size-1 do yield(row, col, "")}
+            }                                                                                  
 
         let MiniMax game = raise (System.NotImplementedException("MiniMax"))
 
