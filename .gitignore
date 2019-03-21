@@ -2,4 +2,5 @@
 */bin
 */obj
 *ignore.*
+# testing auth for git pull push requests 
 *.*proj
