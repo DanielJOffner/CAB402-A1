@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.6.2" />
+  </ItemGroup>  
+
+  <ItemGroup>
+    <Compile Include="TicTacToeImpure.fs" />
+    <Compile Include="TicTacToePure.fs" />
+    <None Include="playground-ignore.fsx" />
+    <ProjectReference Include="..\GameTheory\GameTheory.fsproj" />
+    <ProjectReference Include="..\TicTacToeModelInterfaces\TicTacToeModelInterfaces.fsproj" />
+    <None Include="playground2-ignore.fsx" />
+  </ItemGroup>
+</Project>
