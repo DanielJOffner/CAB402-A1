@@ -11,7 +11,6 @@ namespace QUT
             match player with
             | Nought -> "O"
             | Cross -> "X"
-            | _ -> ""
             
         // type to represent a single move specified using (row, column) coordinates of the selected square
         type Move = 
@@ -28,7 +27,14 @@ namespace QUT
                 member this.Size with get()    = this.Size
                 member this.getPiece(row, col) = raise (System.NotImplementedException("getPiece"))
 
-
+        // Returns a string representing which player occupies a given row col
+        // "O" for Nought, "X" for Cross, "" for none
+        let getPlayerAt (gameState:GameState) row col : string =
+            gameState.Board
+            |> List.filter (fun (a,b,c) -> a = row && b = col)
+            |> fun list -> list.[0]
+            |> fun (a,b,c) -> c
+      
         let CreateMove row col = {Row = row; Column = col}
 
         let ApplyMove (oldState:GameState) (move: Move) = 
@@ -69,11 +75,27 @@ namespace QUT
 
         // Checks a single line (specified as a sequence of (row,column) coordinates) to determine if one of the players
         // has won by filling all of those squares, or a Draw if the line contains at least one Nought and one Cross
-        let CheckLine (game:GameState) (line:seq<int*int>) : TicTacToeOutcome<Player> = raise (System.NotImplementedException("CheckLine"))
+        let CheckLine (game:GameState) (line:seq<int*int>) : TicTacToeOutcome<Player> = 
+            line
+            |> Seq.map (fun (row,col) -> getPlayerAt game row col)
+            |> Seq.reduce (+)
+            |> fun reducedLine ->
+                match reducedLine with
+                | "OOO" -> Win (winner = Nought, line = line)
+                | "XXX" -> Win (winner = Cross, line = line)
+                | "XOX" -> Draw
+                | "OXO" -> Draw
+                | _ -> Undecided
 
-        let GameOutcome game = raise (System.NotImplementedException("GameOutcome"))
+        let GameOutcome game : TicTacToeOutcome<Player>= raise (System.NotImplementedException("MiniMaxWithPruning"))
+            //Lines game.Size
+            //|> Seq.map (fun line -> CheckLine game line)
+            //|> fun seq ->
+            //    if Seq.exists (fun line -> line = Draw) seq
+            //    then Undecided
+            //Undecided
 
-        let GameStart (firstPlayer:Player) size = 
+        let GameStart (firstPlayer:Player) size =
             { 
             Turn = firstPlayer; 
             Size = size; 
@@ -85,8 +107,6 @@ namespace QUT
         let MiniMaxWithPruning game = raise (System.NotImplementedException("MiniMaxWithPruning"))
 
         // plus other helper functions ...
-
-
 
         [<AbstractClass>]
         type Model() =
