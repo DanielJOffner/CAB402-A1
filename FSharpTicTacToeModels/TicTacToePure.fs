@@ -4,14 +4,7 @@ namespace QUT
     
         // type to represent the two players: Noughts and Crosses
         type Player = Nought | Cross 
-
-        // Returns a string to represent player piece on the board
-        // "X" for Cross, "O" for Nought and "" for none
-        let getPiece (player: Player) : string =
-            match player with
-            | Nought -> "O"
-            | Cross -> "X"
-            
+       
         // type to represent a single move specified using (row, column) coordinates of the selected square
         type Move = 
             { Row: int; Column: int }
@@ -25,7 +18,20 @@ namespace QUT
             interface ITicTacToeGame<Player> with
                 member this.Turn with get()    = this.Turn
                 member this.Size with get()    = this.Size
-                member this.getPiece(row, col) = raise (System.NotImplementedException("getPiece"))
+                member this.getPiece(row, col) = 
+                    this.Board
+                    |> List.filter (fun (a,b,c) -> a = row && b = col)
+                    |> fun list -> list.[0]
+                    |> fun (a,b,c) -> c
+
+        //**START helper functions**
+
+        // Returns a string to represent a player piece on the board
+        // "X" for Cross, "O" for Nought and "" for none
+        let getPiece (player: Player) : string =
+            match player with
+            | Nought -> "O"
+            | Cross -> "X"
 
         // Returns a string representing which player occupies a given row col
         // "O" for Nought, "X" for Cross, "" for none
@@ -34,6 +40,26 @@ namespace QUT
             |> List.filter (fun (a,b,c) -> a = row && b = col)
             |> fun list -> list.[0]
             |> fun (a,b,c) -> c
+
+        // takes a sequence of outcomes (seq<TicTacToeOutcome>) 
+        //returns true if a payer has won or false if no player has won 
+        let isGameWon outcomes =
+            outcomes
+            |> Seq.exists (fun outcome -> 
+                 match outcome with
+                 | Win (a, b) -> a = Nought || a = Cross
+                 | _ -> false)
+
+        // takes a sequence of outcomes (seq<TicTacToeOutcome>) 
+        //returns the player that has won the game
+        let getWinner outcomes =
+            outcomes 
+            |> Seq.find (fun outcome -> 
+                match outcome with
+                | Win (a, b) -> a = Nought || a = Cross
+                | _ -> false)
+
+        //**END helper functions**
       
         let CreateMove row col = {Row = row; Column = col}
 
@@ -83,18 +109,48 @@ namespace QUT
                 match reducedLine with
                 | "OOO" -> Win (winner = Nought, line = line)
                 | "XXX" -> Win (winner = Cross, line = line)
-                | "XOX" -> Draw
-                | "OXO" -> Draw
-                | _ -> Undecided
+                | "XX" -> Undecided
+                | "OO" -> Undecided
+                | "X" -> Undecided
+                | "O" -> Undecided
+                | "" -> Undecided
+                | _ -> Draw
+            //let noughtCount = 
+            //    line
+            //    |> Seq.map (fun (row,col) -> getPlayerAt game row col)
+            //    |> Seq.countBy (fun player -> player = "O") //[(true, count:int); (false, count:int)]
+            //    |> Seq.filter (fun (boolean, count) -> boolean = true)
+            //    |> Seq.toList 
+            //    |> fun list ->
+            //        match list.[0]  with
+            //        | (boolean,count) -> count 
+                    
+            //let crossCount = 
+            //    line
+            //    |> Seq.map (fun (row,col) -> getPlayerAt game row col)
+            //    |> Seq.countBy (fun player -> player = "X") //[(true, count:int); (false, count:int)] 
+            //    |> Seq.filter (fun (boolean, count) -> boolean = true)
+            //    |> Seq.toList 
+            //    |> fun list ->
+            //        match list.[0]  with
+            //        | (boolean,count) -> count 
 
-        let GameOutcome game : TicTacToeOutcome<Player>= raise (System.NotImplementedException("MiniMaxWithPruning"))
-            //Lines game.Size
-            //|> Seq.map (fun line -> CheckLine game line)
-            //|> fun seq ->
-            //    if Seq.exists (fun line -> line = Draw) seq
-            //    then Undecided
-            //Undecided
+            //if noughtCount = game.Size then Win (winner = Nought, line = line)
+            //else if crossCount = game.Size then Win (winner = Cross, line = line)
+            //else if noughtCount + crossCount >= 2 then Draw
+            //else Undecided
 
+        let GameOutcome (game:GameState) : TicTacToeOutcome<Player> = 
+            let outcomes =
+                Lines game.Size
+                |> Seq.map (fun line -> CheckLine game line)
+
+            if outcomes |> Seq.forall (fun outcome -> outcome = Draw) then Draw 
+            else if outcomes |> isGameWon then outcomes |> getWinner
+            else Undecided
+
+
+ 
         let GameStart (firstPlayer:Player) size =
             { 
             Turn = firstPlayer; 
@@ -107,6 +163,7 @@ namespace QUT
         let MiniMaxWithPruning game = raise (System.NotImplementedException("MiniMaxWithPruning"))
 
         // plus other helper functions ...
+        
 
         [<AbstractClass>]
         type Model() =
