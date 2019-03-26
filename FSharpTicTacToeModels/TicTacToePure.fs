@@ -63,7 +63,7 @@ namespace QUT
       
         let CreateMove row col = {Row = row; Column = col}
 
-        let ApplyMove (oldState:GameState) (move: Move) = 
+        let ApplyMove (oldState:GameState) (move: Move) : GameState = 
             let currentPlayerTurn = oldState.Turn
             let newPlayerTurn =
                 match oldState.Turn with
@@ -162,7 +162,6 @@ namespace QUT
         // +1 for a win, -1 for a loss, 0 for a draw 
         let heuristic game player =
             match GameOutcome game with
-            | Undecided -> 0 
             | Draw -> 0
             | Win (player, line) ->
                 if player = player then 1
@@ -182,18 +181,11 @@ namespace QUT
             game.Board
             |> Seq.filter (fun (row,col,player) -> player = "") //find only empty spaces on the board
             |> Seq.map (fun (row, col, player) -> CreateMove row col) 
+            
         //**END helper functions for MiniMax//
 
         let MiniMax game = GameTheory.MiniMaxGenerator heuristic getTurn gameOver moveGenerator ApplyMove
-        //(heuristic:'Game -> 'Player -> int) 
-        //(getTurn: 'Game -> 'Player) 
-        //(gameOver:'Game->bool) 
-        //(moveGenerator: 'Game->seq<'Move>)
-        //(applyMove: 'Game -> 'Move -> 'Game) 
-
-
         
-
         let MiniMaxWithPruning game = raise (System.NotImplementedException("MiniMaxWithPruning"))      // calculates a heuristic score for any game situation
 
         // plus other helper functions ...
