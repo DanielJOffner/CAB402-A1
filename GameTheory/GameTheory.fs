@@ -4,9 +4,11 @@ namespace QUT
 
         let MiniMaxGenerator (heuristic:'Game -> 'Player -> int) (getTurn: 'Game -> 'Player) (gameOver:'Game->bool) (moveGenerator: 'Game->seq<'Move>) (applyMove: 'Game -> 'Move -> 'Game) : 'Game -> 'Player -> Option<'Move> * int =
             // Basic MiniMax algorithm without using alpha beta pruning
+            // provides good code for this https://towardsdatascience.com/tic-tac-toe-creating-unbeatable-ai-with-minimax-algorithm-8af9e52c1e7d
             let rec MiniMax game perspective =
                 NodeCounter.Increment()
-                raise (System.NotImplementedException("MiniMax"))
+                let score = heuristic game perspective
+                (None, score)
             NodeCounter.Reset()
             MiniMax
 

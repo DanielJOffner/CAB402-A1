@@ -12,9 +12,8 @@
   <ItemGroup>
     <Compile Include="TicTacToeImpure.fs" />
     <Compile Include="TicTacToePure.fs" />
-    <None Include="playground-ignore.fsx" />
+    <None Include="ignore.fsx" />
     <ProjectReference Include="..\GameTheory\GameTheory.fsproj" />
     <ProjectReference Include="..\TicTacToeModelInterfaces\TicTacToeModelInterfaces.fsproj" />
-    <None Include="playground2-ignore.fsx" />
   </ItemGroup>
 </Project>

@@ -156,11 +156,45 @@ namespace QUT
             Turn = firstPlayer; 
             Size = size; 
             Board = Seq.toList <| seq {for row in 0 ..size-1 do for col in 0 .. size-1 do yield(row, col, "")}
-            }                                                                                  
+            }                                              
 
-        let MiniMax game = raise (System.NotImplementedException("MiniMax"))
+        //**START helper functions for MiniMax//
+        // +1 for a win, -1 for a loss, 0 for a draw 
+        let heuristic game player =
+            match GameOutcome game with
+            | Undecided -> 0 
+            | Draw -> 0
+            | Win (player, line) ->
+                if player = player then 1
+                else -1
 
-        let MiniMaxWithPruning game = raise (System.NotImplementedException("MiniMaxWithPruning"))
+        // determine which player's turn it is for a given game state
+        let getTurn game = game.Turn
+
+        // determine whether a game is over
+        let gameOver game =
+            match GameOutcome game with
+            | Undecided -> false
+            | _ -> true
+
+        // enumarate all possible moves from a given game situation
+        let moveGenerator game : seq<Move> =
+            game.Board
+            |> Seq.filter (fun (row,col,player) -> player = "") //find only empty spaces on the board
+            |> Seq.map (fun (row, col, player) -> CreateMove row col) 
+        //**END helper functions for MiniMax//
+
+        let MiniMax game = GameTheory.MiniMaxGenerator heuristic getTurn gameOver moveGenerator ApplyMove
+        //(heuristic:'Game -> 'Player -> int) 
+        //(getTurn: 'Game -> 'Player) 
+        //(gameOver:'Game->bool) 
+        //(moveGenerator: 'Game->seq<'Move>)
+        //(applyMove: 'Game -> 'Move -> 'Game) 
+
+
+        
+
+        let MiniMaxWithPruning game = raise (System.NotImplementedException("MiniMaxWithPruning"))      // calculates a heuristic score for any game situation
 
         // plus other helper functions ...
         
