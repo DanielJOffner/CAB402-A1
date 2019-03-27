@@ -60,7 +60,7 @@ namespace QUT
                 | _ -> false)
 
         //**END helper functions**
-      
+
         let CreateMove row col = {Row = row; Column = col}
 
         let ApplyMove (oldState:GameState) (move: Move) : GameState = 
@@ -206,7 +206,15 @@ namespace QUT
         type BasicMiniMax() =
             inherit Model()
             override this.ToString()         = "Pure F# with basic MiniMax";
-            override this.FindBestMove(game) = raise (System.NotImplementedException("FindBestMove"))
+            override this.FindBestMove(game) = 
+                                    let miniMaxFunction = MiniMax game
+                                    miniMaxFunction game game.Turn 
+                                    |> fun (move, score) -> 
+                                        match move with
+                                        | Some move -> move
+
+                                             
+
 
 
         type WithAlphaBetaPruning() =
