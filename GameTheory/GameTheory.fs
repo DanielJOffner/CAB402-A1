@@ -13,40 +13,26 @@ namespace QUT
                     let maximisingPlayer = (perspective = getTurn game)
                     let possibleMoves = Seq.toList <| moveGenerator game //enumerate all possible moves (child nodes) 
                     if maximisingPlayer then 
-                        let max = // <- Tuple containing the index of and value of the move with the highest score//
+                        let max =
                             possibleMoves
-                            |> List.map (fun move -> applyMove game move) 
-                            |> List.map (fun game -> MiniMax game perspective)
-                            |> fun list ->
-                                let maxScore =
-                                    list
-                                    |> List.map (fun (move, score) -> score)
-                                    |> List.max
-                                let indexOfMaxScore = 
-                                    list
-                                    |> List.findIndex (fun (move, score) -> score = maxScore)
-                                (indexOfMaxScore, maxScore)
-
+                            |> List.map (fun move -> (move, applyMove game move))                                                       //output: list[('Move, 'GameState)]
+                            |> List.map (fun (move, gameState) -> (move, MiniMax gameState perspective))                                //output: list[('Move, ('Move, 'Score))]
+                            |> List.map (fun (move, miniMaxResult) -> match miniMaxResult with | (nextMove, score) -> (move,score))     //output: list[('Move, 'Score)]
+                            |> List.maxBy (fun (move, score) -> score)                                                                  //output: ('Move, 'Score)
+                            
                         match max with
-                        | (i, score) -> (Some(possibleMoves.[i]), score)
+                        | (move, score) -> (Some(move), score)
 
                     else // Minimizing player
-                        let min =  // <- Tuple containing the index of and value of the move with the lowest score// 
+                        let min =
                             possibleMoves
-                            |> List.map (fun move -> applyMove game move) 
-                            |> List.map (fun game -> MiniMax game perspective)
-                            |> fun list ->
-                                let minScore =
-                                    list
-                                    |> List.map (fun (move, score) -> score)
-                                    |> List.min
-                                let indexOfMinScore = 
-                                    list
-                                    |> List.findIndex (fun (move, score) -> score = minScore)
-                                (indexOfMinScore, minScore)
+                            |> List.map (fun move -> (move, applyMove game move))                                                       //output: list[('Move, 'GameState)]
+                            |> List.map (fun (move, gameState) -> (move, MiniMax gameState perspective))                                //output: list[('Move, ('Move, 'Score))]
+                            |> List.map (fun (move, miniMaxResult) -> match miniMaxResult with | (nextMove, score) -> (move,score))     //output: list[('Move, 'Score)]
+                            |> List.minBy (fun (move, score) -> score)                                                                  //output: ('Move, 'Score)
 
                         match min with
-                        | (i, score) -> (Some(possibleMoves.[i]), score)
+                        | (move, score) -> (Some(move), score)
 
             NodeCounter.Reset()
             MiniMax
