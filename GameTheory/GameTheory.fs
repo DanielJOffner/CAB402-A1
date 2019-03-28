@@ -9,8 +9,9 @@ namespace QUT
                 // If we are at a leaf (terminal) node then return the heuristic score
                 // +1 for a win, -1 for a loss, 0 for a draw
                 if gameOver game then (None, heuristic game perspective)
-                else 
-                    let maximisingPlayer = (perspective = getTurn game)
+                else
+                    let currentTurn = getTurn game
+                    let maximisingPlayer = perspective = currentTurn
                     let possibleMoves = Seq.toList <| moveGenerator game //enumerate all possible moves (child nodes) 
                     if maximisingPlayer then 
                         let max =

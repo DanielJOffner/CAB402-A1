@@ -94,6 +94,8 @@ namespace QUT
             var game = GenerateGame(Cross, 3, (0, 0));
             var move = modelUnderTest.FindBestMove(game);
             var bestMoves = new List<ValueTuple<int, int>>() { (1, 1) };
+            Console.WriteLine((move.Row, move.Col));
+            Console.WriteLine(bestMoves[0]);
             Assert.IsTrue(bestMoves.Contains((move.Row, move.Col)));
         }
 
@@ -128,6 +130,7 @@ namespace QUT
             var game = GenerateGame(Cross, 3, (0, 0), (0, 1));
             var move = modelUnderTest.FindBestMove(game);
             var bestMoves = new List<ValueTuple<int, int>>() { (1, 0), (1, 1), (2, 0) };
+            Console.WriteLine(move);
             Assert.IsTrue(bestMoves.Contains((move.Row, move.Col)));
         }
 
@@ -162,6 +165,7 @@ namespace QUT
             var game = GenerateGame(Cross, 3, (0, 0), (0, 1), (0, 2));
             var move = modelUnderTest.FindBestMove(game);
             var bestMoves = new List<ValueTuple<int, int>>() { (1, 1) };
+            Console.WriteLine(move);
             Assert.IsTrue(bestMoves.Contains((move.Row, move.Col)));
         }
 
@@ -1013,6 +1017,7 @@ namespace QUT
         {
             var game = GenerateGame(Cross, 3, (0, 0), (1, 0), (0, 1), (0, 2), (1, 2), (2, 2), (1, 1));
             var move = modelUnderTest.FindBestMove(game);
+            Console.WriteLine((move.Row, move.Col));
             var bestMoves = new List<ValueTuple<int, int>>() { (2, 1) };
             Assert.IsTrue(bestMoves.Contains((move.Row, move.Col)));
         }

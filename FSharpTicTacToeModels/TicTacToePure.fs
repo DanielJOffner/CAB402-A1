@@ -115,6 +115,8 @@ namespace QUT
                 | "O" -> Undecided
                 | "" -> Undecided
                 | _ -> Draw
+
+            //TODO implement generic function that works for any size
             //let noughtCount = 
             //    line
             //    |> Seq.map (fun (row,col) -> getPlayerAt game row col)
@@ -160,11 +162,12 @@ namespace QUT
 
         //**START helper functions for MiniMax//
         // +1 for a win, -1 for a loss, 0 for a draw 
-        let heuristic game player =
+        let heuristic game perspectve =
             match GameOutcome game with
+            | Undecided -> 0 //this actually doesn't matter just remove warning
             | Draw -> 0
             | Win (player, line) ->
-                if player = player then 1
+                if player = perspectve then +1
                 else -1
 
         // determine which player's turn it is for a given game state
@@ -184,7 +187,14 @@ namespace QUT
             
         //**END helper functions for MiniMax//
 
-        let MiniMax game = GameTheory.MiniMaxGenerator heuristic getTurn gameOver moveGenerator ApplyMove
+        let MiniMax game = 
+            let MiniMaxFunction = GameTheory.MiniMaxGenerator heuristic getTurn gameOver moveGenerator ApplyMove
+            let bestMove = MiniMaxFunction game game.Turn
+            match bestMove with
+            | (move, score) ->
+                match move with
+                | Some move -> move
+
         
         let MiniMaxWithPruning game = raise (System.NotImplementedException("MiniMaxWithPruning"))      // calculates a heuristic score for any game situation
 
@@ -206,16 +216,8 @@ namespace QUT
         type BasicMiniMax() =
             inherit Model()
             override this.ToString()         = "Pure F# with basic MiniMax";
-            override this.FindBestMove(game) = 
-                                    let miniMaxFunction = MiniMax game
-                                    miniMaxFunction game game.Turn 
-                                    |> fun (move, score) -> 
-                                        match move with
-                                        | Some move -> move
-
-                                             
-
-
+            override this.FindBestMove(game) = MiniMax game
+            
 
         type WithAlphaBetaPruning() =
             inherit Model()
