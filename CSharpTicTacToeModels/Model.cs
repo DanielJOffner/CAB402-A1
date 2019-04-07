@@ -2,8 +2,8 @@
 {
     public class WithAlphaBetaPruning : ITicTacToeModel<Game, Move, Player>
     {
-        public Player Cross => throw new System.NotImplementedException("getCross");
-        public Player Nought => throw new System.NotImplementedException("getNought");
+        public Player Cross => Player.Cross; 
+        public Player Nought => Player.Nought;
         public override string ToString()
         {
             return "Impure C# with Alpha Beta Pruning";
@@ -14,7 +14,7 @@
         }
         public Move CreateMove(int row, int col)
         {
-            throw new System.NotImplementedException("CreateMove");
+            return new Move(row, col);
         }
         public Move FindBestMove(Game game)
         {

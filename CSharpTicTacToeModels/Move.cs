@@ -2,7 +2,17 @@
 {
     public class Move : ITicTacToeMove
     {
-        public int Row => throw new System.NotImplementedException("getRow");
-        public int Col => throw new System.NotImplementedException("getCol");
+        public int row;
+        public int col;
+        public Move(int row, int col)
+        {
+            this.row = row;
+            this.col = col;
+        }
+
+        //** Start ITicTacToeMove interface methods
+        public int Row => this.row;
+        public int Col => this.col;
+        //** End interface methods 
     }
 }
