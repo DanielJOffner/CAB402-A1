@@ -10,7 +10,8 @@
         }
         public Game ApplyMove(Game game, Move move)
         {
-            throw new System.NotImplementedException("ApplyMove");
+            game.applyMove(move);
+            return game;
         }
         public Move CreateMove(int row, int col)
         {
@@ -26,7 +27,7 @@
         }
         public Game GameStart(Player first, int size)
         {
-            throw new System.NotImplementedException("GameStart");
+            return new Game(size, first);
         }
     }
 }
