@@ -95,7 +95,7 @@ namespace QUT.CSharpTicTacToe
 
 
         //Generate a list containing all of the lines on the board: Horizontal, Vertical and Diagonal
-        //Each line is represented as a list of moves List<ValueTuple<int,int>>
+        //Each line is represented as a list of coor List<ValueTuple<int,int>>
         private List<List<(int row, int col)>> getLines()
         { 
             var allCoordinates = getAllBoardCoordinates();
@@ -154,7 +154,7 @@ namespace QUT.CSharpTicTacToe
                 return TicTacToeOutcome<Player>.Draw;
             } 
 
-            //if there are no wins and the game is not a daw - return undecided
+            //if there are no wins and the game is not a daw - return the undecided outcome
             return TicTacToeOutcome<Player>.Undecided;
         }
 
