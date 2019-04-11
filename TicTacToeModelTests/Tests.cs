@@ -1044,6 +1044,7 @@ namespace QUT
         {
             var game = GenerateGame(Cross, 3, (0, 0), (1, 0), (0, 1), (0, 2), (1, 2), (2, 2), (1, 1), (2, 1));
             var outcome = modelUnderTest.GameOutcome(game);
+            Console.WriteLine(outcome);
             Assert.IsTrue(outcome.IsUndecided);
         }
 
@@ -1078,6 +1079,7 @@ namespace QUT
         {
             var game = GenerateGame(Cross, 3, (0, 0), (1, 0), (0, 1), (0, 2), (1, 2), (2, 2), (1, 1), (2, 1), (2, 0));
             var outcome = modelUnderTest.GameOutcome(game);
+            Console.WriteLine(outcome);
             Assert.IsTrue(outcome.IsDraw);
         }
 

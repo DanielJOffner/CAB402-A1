@@ -1,4 +1,4 @@
 ﻿namespace QUT.CSharpTicTacToe
 {
-    public enum Player{Nought, Cross}
+    public enum Player{Nought, Cross, None}
 }

@@ -23,7 +23,7 @@
         }
         public TicTacToeOutcome<Player> GameOutcome(Game game)
         {
-            throw new System.NotImplementedException("GameOutcome");
+            return game.getGameOutcome();
         }
         public Game GameStart(Player first, int size)
         {
