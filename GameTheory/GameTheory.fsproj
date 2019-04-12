@@ -6,15 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="GameTheory.fs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\NodeCounter\NodeCounter.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="GameTheory.fs" />
+    <None Include="ignore.fsx" />
+    <ProjectReference Include="..\NodeCounter\NodeCounter.csproj" />
+  </ItemGroup>
 </Project>

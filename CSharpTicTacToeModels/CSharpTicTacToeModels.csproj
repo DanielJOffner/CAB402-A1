@@ -11,4 +11,8 @@
     <ProjectReference Include="..\GameTheory\GameTheory.fsproj" />
 	</ItemGroup>  
 
+  <ItemGroup>
+    <Compile Remove="ITicTacToeGame.cs" />
+    <Compile Remove="ITicTacToeGame.cs" />
+  </ItemGroup>
 </Project>

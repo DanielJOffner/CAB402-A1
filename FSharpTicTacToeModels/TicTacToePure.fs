@@ -174,7 +174,7 @@ namespace QUT
 
         let MiniMaxWithPruning game = 
             let MiniMaxFunction = GameTheory.MiniMaxWithAlphaBetaPruningGenerator heuristic getTurn gameOver moveGenerator ApplyMove
-            let bestMove = MiniMaxFunction 0 0 game game.Turn
+            let bestMove = MiniMaxFunction -1 1 game game.Turn
             match bestMove with
             | (move, score) ->
               match move with
