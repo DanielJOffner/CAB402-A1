@@ -20,6 +20,7 @@
         public Move FindBestMove(Game game)
         {
             throw new System.NotImplementedException("FindBestMove");
+
         }
         public TicTacToeOutcome<Player> GameOutcome(Game game)
         {

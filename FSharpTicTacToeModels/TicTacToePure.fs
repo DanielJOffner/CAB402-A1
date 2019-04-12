@@ -168,10 +168,18 @@ namespace QUT
             | (move, score) ->
                 match move with
                 | Some move -> move
+                | _ -> raise (System.Exception("MiniMax should not be called if there are no moves left"))
                 
 
-        
-        let MiniMaxWithPruning game = raise (System.NotImplementedException("MiniMaxWithPruning"))      // calculates a heuristic score for any game situation
+
+        let MiniMaxWithPruning game = 
+            let MiniMaxFunction = GameTheory.MiniMaxWithAlphaBetaPruningGenerator heuristic getTurn gameOver moveGenerator ApplyMove
+            let bestMove = MiniMaxFunction 0 0 game game.Turn
+            match bestMove with
+            | (move, score) ->
+              match move with
+              | Some move -> move  
+              | _ -> raise (System.Exception("MiniMax should not be called if there are no moves left"))    
 
         // plus other helper functions ...
         
@@ -197,4 +205,4 @@ namespace QUT
         type WithAlphaBetaPruning() =
             inherit Model()
             override this.ToString()         = "Pure F# with Alpha Beta Pruning";
-            override this.FindBestMove(game) = raise (System.NotImplementedException("FindBestMove"))
+            override this.FindBestMove(game) = MiniMaxWithPruning game
