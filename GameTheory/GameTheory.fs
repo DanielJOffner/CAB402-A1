@@ -50,15 +50,7 @@ namespace QUT
                     let maximisingPlayer = perspective = currentTurn
                     let possibleMoves = Seq.toList <| moveGenerator game //enumerate all possible moves (child nodes) 
                     if maximisingPlayer then 
-                        //let rec pruneChildNodes move gameStates =
-                        // Recursively evaluate child nodes and stop if alpha >= beta 
-                        // Variable definitions:
-                        // bestScore - the current best score achieved by any of the child nodes
-                        // lastMove - the last move which lead to the current game state 
-                        // node - tuple containing the next move and the score of that board state (move, score)
-                        // nodeScore - score given to an individual node 
-                        // maxScore - the maximum result between the current best score and the nodeScore
-                        // maxAlpha - the maximum result between the maxScore and the current alpha value 
+                        //let rec pruneChildNodes childNodes =
                         let rec pruneNodes childNodes bestScore =
                             match childNodes with
                             | [] -> raise (System.Exception("Minimax should not be called if the game is over (if there are no move moves available"))
@@ -66,50 +58,42 @@ namespace QUT
                             | head::tail ->
                                 let lastMove = head |> (fun (move, gameState) -> move)                                          // The last move that lead to this game state 
                                 let node = head |> fun (move, gameState) -> MiniMax alpha beta gameState perspective            // Recursively evaluate the score of the first node
-                                let nodeScore = node |> fun (nextMove, score) -> score                                          // Extract only the score element of the node
-                                let maxScore = max bestScore nodeScore                                                          // Get the maximum of the current best score vs the node's score
-                                let maxAlpha = max nodeScore alpha                                                               // Get the maximum of the maxScore vs the current alpha 
-                                if(maxAlpha >= beta) then [(lastMove, node)]
-                                else [(lastMove, node)] @ (pruneNodes tail maxScore)
+                                let nodeScore = node |> fun (nextMove, score) -> score 
+                                let bestScore = max nodeScore bestScore                                                                                           // Extract only the score element of the node
+                                let alpha = max bestScore alpha                                                                 // Get the maximum of the maxScore vs the current alpha 
+                                if(beta <= alpha) then [(lastMove, node)] //break 
+                                else [(lastMove, node)] @ (pruneNodes tail bestScore)
 
 
-                        // solution is to implement recusive function like map so that each node can be evaluated individually 
-                        // rather than mappig the whole List you could 'break' the loop by returning None
-                        let childNodes =  possibleMoves |> List.map (fun move -> (move, applyMove game move))                           //output: list[('Move, 'GameState)]
-
-                        //let max =
-                            //possibleMoves
-                            //|> List.map (fun move -> (move, applyMove game move))                                                       //output: list[('Move, 'GameState)]
-                            //|> List.map (fun (move, gameState) -> (move, MiniMax alpha beta gameState perspective))                     //output: list[('Move, ('Move, 'Score))]
-                            //|> List.map (fun (move, miniMaxResult) -> match miniMaxResult with | (nextMove, score) -> (move,score))     //output: list[('Move, 'Score)]
-                            //|> List.maxBy (fun (move, score) -> score)                                                                  //output: ('Move, 'Score)
+                        let childNodes = possibleMoves |> List.map (fun move -> (move, applyMove game move))                      //output: list[('Move, 'GameState)]
+                        
 
                         let max2 =
-                            pruneNodes childNodes -100000000
-                            |> List.map (fun (move, miniMaxResult) -> match miniMaxResult with | (nextMove, score) -> (move,score))
-                            |> List.maxBy (fun (move, score) -> score)  
+                            pruneNodes childNodes -10000000
+                            |> List.map (fun (move, miniMaxResult) -> match miniMaxResult with | (nextMove, score) -> (move,score))       //output: list[('Move, 'Score)]
+                            |> List.maxBy (fun (move, score) -> score)                                                                    //output: ('Move, 'Score)
 
                         match max2 with
                         | (move, score) -> (Some(move), score)
 
                     else // Minimizing player
-                        let rec pruneNodes childNodes worstScore =
+                        let rec pruneNodes childNodes worstScore=
                             match childNodes with
                             | [] -> raise (System.Exception("Minimax should not be called if the game is over (if there are no move moves available"))
                             | [head] ->  head |> (fun (move, gameState) -> [(move, MiniMax alpha beta gameState perspective)])  // If there only one move available there is nothing to prune 
                             | head::tail ->
                                 let lastMove = head |> (fun (move, gameState) -> move)                                          // The last move that lead to this game state 
                                 let node = head |> fun (move, gameState) -> MiniMax alpha beta gameState perspective            // Recursively evaluate the score of the first node
-                                let nodeScore = node |> fun (nextMove, score) -> score                                          // Extract only the score element of the node
-                                let minScore = min worstScore nodeScore                                                          // Get the maximum of the current best score vs the node's score
-                                let minBeta = min nodeScore beta                                                                 // Get the maximum of the maxScore vs the current alpha 
-                                if(alpha >= minBeta) then [(lastMove, node)]
-                                else [(lastMove, node)] @ (pruneNodes tail minScore)
+                                let nodeScore = node |> fun (nextMove, score) -> score    
+                                let worstScore = min nodeScore worstScore                                      // Extract only the score element of the node
+                                let beta = min worstScore beta                                                                 // Get the maximum of the maxScore vs the current alpha 
+                                if(beta <= alpha) then [(lastMove, node)] //break 
+                                else [(lastMove, node)] @ (pruneNodes tail worstScore)
 
                         let childNodes =  possibleMoves |> List.map (fun move -> (move, applyMove game move)) 
 
                         let min2 =
-                            pruneNodes childNodes 100000000
+                            pruneNodes childNodes 100000
                             |> List.map (fun (move, miniMaxResult) -> match miniMaxResult with | (nextMove, score) -> (move,score))
                             |> List.minBy (fun (move, score) -> score)  
 
