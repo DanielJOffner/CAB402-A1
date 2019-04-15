@@ -11,7 +11,6 @@
 
   <ItemGroup>
     <Compile Include="GameTheory.fs" />
-    <None Include="ignore.fsx" />
     <ProjectReference Include="..\NodeCounter\NodeCounter.csproj" />
   </ItemGroup>
 </Project>

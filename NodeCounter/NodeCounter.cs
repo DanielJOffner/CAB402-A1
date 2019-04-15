@@ -1,4 +1,6 @@
-﻿namespace QUT
+﻿using System;
+
+namespace QUT
 {
     // This stateful class is used to encapsulate the process of counting how many nodes have been explored by the most recent call to the Minimax function
     public class NodeCounter

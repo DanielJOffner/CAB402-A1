@@ -51,25 +51,24 @@ namespace QUT
                     let possibleMoves = Seq.toList <| moveGenerator game //enumerate all possible moves (child nodes) 
                     if maximisingPlayer then 
                         //let rec pruneChildNodes childNodes =
-                        let rec pruneNodes childNodes bestScore =
+                        let rec pruneNodes childNodes alpha beta =
                             match childNodes with
-                            | [] -> raise (System.Exception("Minimax should not be called if the game is over (if there are no move moves available"))
+                            | [] -> raise (System.Exception("Minimax should not be called if the game is over (if there are no more moves available"))
                             | [head] ->  head |> (fun (move, gameState) -> [(move, MiniMax alpha beta gameState perspective)])  // If there only one move available there is nothing to prune 
                             | head::tail ->
                                 let lastMove = head |> (fun (move, gameState) -> move)                                          // The last move that lead to this game state 
                                 let node = head |> fun (move, gameState) -> MiniMax alpha beta gameState perspective            // Recursively evaluate the score of the first node
-                                let nodeScore = node |> fun (nextMove, score) -> score 
-                                let bestScore = max nodeScore bestScore                                                                                           // Extract only the score element of the node
-                                let alpha = max bestScore alpha                                                                 // Get the maximum of the maxScore vs the current alpha 
+                                let nodeScore = node |> fun (nextMove, score) -> score                                                                                            // Extract only the score element of the node
+                                let alpha = max nodeScore alpha                                                            // Get the maximum of the maxScore vs the current alpha 
                                 if(beta <= alpha) then [(lastMove, node)] //break 
-                                else [(lastMove, node)] @ (pruneNodes tail bestScore)
+                                else [(lastMove, node)] @ (pruneNodes tail alpha beta)
 
 
                         let childNodes = possibleMoves |> List.map (fun move -> (move, applyMove game move))                      //output: list[('Move, 'GameState)]
                         
 
                         let max2 =
-                            pruneNodes childNodes -10000000
+                            pruneNodes childNodes alpha beta
                             |> List.map (fun (move, miniMaxResult) -> match miniMaxResult with | (nextMove, score) -> (move,score))       //output: list[('Move, 'Score)]
                             |> List.maxBy (fun (move, score) -> score)                                                                    //output: ('Move, 'Score)
 
@@ -77,23 +76,22 @@ namespace QUT
                         | (move, score) -> (Some(move), score)
 
                     else // Minimizing player
-                        let rec pruneNodes childNodes worstScore=
+                        let rec pruneNodes childNodes alpha beta =
                             match childNodes with
-                            | [] -> raise (System.Exception("Minimax should not be called if the game is over (if there are no move moves available"))
+                            | [] -> raise (System.Exception("Minimax should not be called if the game is over (if there are no more moves available"))
                             | [head] ->  head |> (fun (move, gameState) -> [(move, MiniMax alpha beta gameState perspective)])  // If there only one move available there is nothing to prune 
                             | head::tail ->
                                 let lastMove = head |> (fun (move, gameState) -> move)                                          // The last move that lead to this game state 
                                 let node = head |> fun (move, gameState) -> MiniMax alpha beta gameState perspective            // Recursively evaluate the score of the first node
-                                let nodeScore = node |> fun (nextMove, score) -> score    
-                                let worstScore = min nodeScore worstScore                                      // Extract only the score element of the node
-                                let beta = min worstScore beta                                                                 // Get the maximum of the maxScore vs the current alpha 
+                                let nodeScore = node |> fun (nextMove, score) -> score                                        // Extract only the score element of the node
+                                let beta = min nodeScore beta                                                          // Get the maximum of the maxScore vs the current alpha 
                                 if(beta <= alpha) then [(lastMove, node)] //break 
-                                else [(lastMove, node)] @ (pruneNodes tail worstScore)
+                                else [(lastMove, node)] @ (pruneNodes tail alpha beta)
 
                         let childNodes =  possibleMoves |> List.map (fun move -> (move, applyMove game move)) 
 
                         let min2 =
-                            pruneNodes childNodes 100000
+                            pruneNodes childNodes alpha beta
                             |> List.map (fun (move, miniMaxResult) -> match miniMaxResult with | (nextMove, score) -> (move,score))
                             |> List.minBy (fun (move, score) -> score)  
 
