@@ -59,7 +59,7 @@ namespace QUT
                                 let lastMove = head |> (fun (move, gameState) -> move)                                          // The last move that lead to this game state 
                                 let node = head |> fun (move, gameState) -> MiniMax alpha beta gameState perspective            // Recursively evaluate the score of the first node
                                 let nodeScore = node |> fun (nextMove, score) -> score                                                                                            // Extract only the score element of the node
-                                let alpha = max nodeScore alpha                                                            // Get the maximum of the maxScore vs the current alpha 
+                                let alpha = max nodeScore alpha                                                                 // Get the maximum of the maxScore vs the current alpha 
                                 if(beta <= alpha) then [(lastMove, node)] //break 
                                 else [(lastMove, node)] @ (pruneNodes tail alpha beta)
 

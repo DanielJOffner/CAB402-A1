@@ -7,7 +7,7 @@ namespace QUT.CSharpTicTacToe
     {
         public int size;
         public Player player;
-        private List<List<Player>> board;
+        public List<List<Player>> board;
 
         public Game(int size, Player player)
         {
