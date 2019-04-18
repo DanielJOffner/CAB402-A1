@@ -8,24 +8,41 @@ namespace QUT.CSharpTicTacToe
         public int size;
         public Player player;
         public List<List<Player>> board;
+        //List<List<Player>> board = null
 
-        public Game(int size, Player player)
+        public Game(int size, Player player, List<List<Player>> board = null)
         {
             this.size = size;
             this.player = player;
-            board = new List<List<Player>>();
-
-            //populate empty board [[None,None...size],[None,None..size]...size]
-            for (int row = 0; row < size; row++)
+            if (board == null)
             {
-                List<Player> rowLine = new List<Player>();
-                for (int col = 0; col < size; col++)
-                {
-                    rowLine.Add(Player.None);
-                }
-                board.Add(rowLine);
+                this.board = new List<List<Player>>();
+                PopulateEmptyBoard();
+            }
+            else
+            {
+                //this.board = new List<List<Player>>(board);
+                this.board = new List<List<Player>>();
+                CloneBoard(board);
             }
         }
+
+        public bool PrintBoard(){
+            foreach(List<Player> players in board)
+            {
+                Console.Write("[");
+                foreach(Player player in players)
+                {
+                    Console.Write("[");
+                    Console.Write(player);
+                    Console.Write("]");
+                }
+                Console.Write("]");
+                Console.WriteLine("");
+            }
+            return true;
+        }
+
 
         //**ITicTacToeGame interface method requirements**//
         public int Size => size;
@@ -35,6 +52,35 @@ namespace QUT.CSharpTicTacToe
             return getPieceFromPlayer(board[row][col]);
         }
         //** End interface method requirements**//
+
+        
+        private void CloneBoard(List<List<Player>> boardToClone) 
+        {
+            for (int row = 0; row < size; row++)
+            {
+                List<Player> rowLine = new List<Player>();
+                for (int col = 0; col < size; col++)
+                {
+                    rowLine.Add(boardToClone[row][col]);
+                }
+                this.board.Add(rowLine);
+            }
+        }
+
+        // Populate the board so that each (row,col) is occupied by Player.None
+        private void PopulateEmptyBoard()
+        {
+            //populate empty board [[None,None...size],[None,None..size]...size]
+            for (int row = 0; row < size; row++)
+            {
+                List<Player> rowLine = new List<Player>();
+                for (int col = 0; col < size; col++)
+                {
+                    rowLine.Add(Player.None);
+                }
+                this.board.Add(rowLine);
+            }
+        }
 
         //Returns a string to represent a Player on the board
         // "X" for Cross, "O" for Nought, "" for None

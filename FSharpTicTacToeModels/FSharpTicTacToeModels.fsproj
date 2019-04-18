@@ -11,11 +11,11 @@
 
   <ItemGroup>
     <None Remove="Script.fsx" />
+    <None Remove="ignore.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TicTacToeImpure.fs" />
     <Compile Include="TicTacToePure.fs" />
-    <None Include="ignore.fsx" />
     <ProjectReference Include="..\GameTheory\GameTheory.fsproj" />
     <ProjectReference Include="..\TicTacToeModelInterfaces\TicTacToeModelInterfaces.fsproj" />
   </ItemGroup>
