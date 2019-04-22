@@ -17,7 +17,7 @@ namespace QUT
         public static void Increment()
         {
             count++;
-            //Console.WriteLine(count);
+            //Console.WriteLine("node count {0}", count);
         }
 
         // Used to retrieve the final node count as a read only property

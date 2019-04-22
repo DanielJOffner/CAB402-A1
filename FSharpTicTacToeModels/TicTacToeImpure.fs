@@ -3,7 +3,15 @@ namespace QUT
     module FSharpImpureTicTacToeModel =
 
         // type to represent the two players: Noughts and Crosses
-        type Player = Nought | Cross 
+        type Player = Nought | Cross | None
+
+        // returns a string to represent a player piece on the board
+        // "X" for Cross, "O" for Nought and "" for none
+        let getPiece (player: Player) : string =
+            match player with
+            | Nought -> "O"
+            | Cross -> "X"
+            | None -> ""
 
         // type to represent a single move specified using (row, column) coordinates of the selected square
         type Move = 
@@ -14,28 +22,17 @@ namespace QUT
 
         // type to represent the current state of the game, including the size of the game (NxN), who's turn it is and the pieces on the board
         type GameState = 
-            { Turn: Player; Size: int; Board: list<int*int*string>}
+            { Turn: Player; Size: int; Board: array<array<Player>> }
             interface ITicTacToeGame<Player> with
                 member this.Turn with get()    = this.Turn
                 member this.Size with get()    = this.Size
-                member this.getPiece(row, col) = 
-                    this.Board
-                    |> List.find(fun (rowInt,colInt,playerString) -> rowInt = row && colInt = col)
-                    |> fun(rowInt,colInt,playerString) -> playerString
-                    
-
-        // returns a string to represent a player piece on the board
-        // "X" for Cross, "O" for Nought and "" for none
-        let getPiece (player: Player) : string =
-            match player with
-            | Nought -> "O"
-            | Cross -> "X"
+                member this.getPiece(row, col) = this.Board.[row].[col] |> getPiece
+                
 
         // returns a string representing which player occupies a given row col
+        // "X" for cross, "O" for nought, "" for no player
         let getPlayerStringAt (game:GameState) row col : string =
-            game.Board
-            |> List.find(fun (rowInt,colInt,playerString) -> rowInt = row && colInt = col)
-            |> fun(rowInt,colInt,playerString) -> playerString
+            game.Board.[row].[col] |> getPiece
 
         // takes a sequence of outcomes seq<TicTacToeOutcome>)
         // returns true if a payer has won or false if no player has won 
@@ -60,31 +57,30 @@ namespace QUT
         let CreateMove row col = {Row = row; Column = col}
 
 
+        // method to copy the board into a new array
+        let copyBoard (board: array<array<Player>>) size =
+            [| for row in 0 .. size-1 -> 
+                [| for col in 0 .. size-1 ->
+                    board.[row].[col] |] |]
+
+
         // swaps the players turn
         let swapTurn turn =
             match turn with
             | Nought -> Cross
             | Cross -> Nought
-
-        // returns a new board representing the board state after a move is applied 
-        // applies a "X" or "O" at position move.row, move.column
-        let getNewBoardAfterMove board move turn =
-            board
-            |> List.map (fun (row,col,piece) -> 
-                if row = move.Row && col = move.Column 
-                then (row,col, getPiece turn) 
-                else (row,col,piece)) 
-
+            | None -> raise (System.Exception("game should only ever be started with Nought or Cross as a player"))
 
         // returns a new GameState which represents the state of the game after a move is applied
         // applies the move on the board and swaps the player turn 
-        let ApplyMove (oldState:GameState) (move: Move) : GameState = 
-            let currentPlayerTurn = oldState.Turn
-            let newPlayerTurn = swapTurn oldState.Turn
-            let newBoardState = getNewBoardAfterMove oldState.Board move currentPlayerTurn
+        let ApplyMove (game: GameState) (move: Move) = 
+            let newBoardState = copyBoard game.Board game.Size
+            newBoardState.[move.Row].[move.Column] <- game.Turn
+
+            // return the new game and swap the player
             {
-            Turn = newPlayerTurn; 
-            Size = oldState.Size; 
+            Turn = game.Turn |> swapTurn; 
+            Size = game.Size;
             Board = newBoardState
             }
 
@@ -146,14 +142,19 @@ namespace QUT
             else if outcomes |> isGameWon then outcomes |> getWinner
             else Undecided
 
+        // generate an empty board of array<array<Player>> where each row,col = None
+        let GetEmptyBoard size =
+            [| for row in 1 .. size -> 
+                [| for col in 1 .. size ->
+                    None |] |]
+                    
 
         // returns a new game where all row,col coordinates are occupied by "" (no player) 
-        let GameStart (firstPlayer:Player) size =
-            { 
-            Turn = firstPlayer; 
+        let GameStart first size = { 
+            Turn = first; 
             Size = size; 
-            Board = Seq.toList <| seq {for row in 0 ..size-1 do for col in 0 .. size-1 do yield(row, col, "")}
-            }                                              
+            Board = GetEmptyBoard size 
+            }                                            
 
         //*****************************************************************************************//
         //*************************  Helper functions for MiniMax only ****************************//
@@ -180,9 +181,13 @@ namespace QUT
 
         // enumarate all possible moves from a given board state 
         let moveGenerator game : seq<Move> =
-            game.Board
-            |> Seq.filter (fun (row,col,player) -> player = "") //find only empty spaces on the board
-            |> Seq.map (fun (row, col, player) -> CreateMove row col) 
+            let gameCoordinates = seq {for row in 0 ..game.Size-1 do for col in 0 .. game.Size-1 do yield(row, col)}
+            let moves =
+                gameCoordinates
+                |> Seq.map (fun (row,col) -> CreateMove row col)
+                |> Seq.filter (fun move -> game.Board.[move.Row].[move.Column] = None)
+            moves
+            
 
         //*****************************************************************************************//
         //*********************  END helper functions for MiniMax only ****************************//
@@ -207,6 +212,7 @@ namespace QUT
               match move with
               | Some move -> move  
               | _ -> raise (System.Exception("MiniMax should not be called if there are no moves left"))    
+              
 
         
 

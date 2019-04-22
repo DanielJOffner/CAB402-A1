@@ -1,6 +1,7 @@
 namespace QUT
 
     module GameTheory =
+        
 
         let MiniMaxGenerator (heuristic:'Game -> 'Player -> int) (getTurn: 'Game -> 'Player) (gameOver:'Game->bool) (moveGenerator: 'Game->seq<'Move>) (applyMove: 'Game -> 'Move -> 'Game) : 'Game -> 'Player -> Option<'Move> * int =
             // Basic MiniMax algorithm without using alpha beta pruning
@@ -49,6 +50,7 @@ namespace QUT
                     let currentTurn = getTurn game
                     let maximisingPlayer = perspective = currentTurn
                     let possibleMoves = Seq.toList <| moveGenerator game //enumerate all possible moves (child nodes) 
+
                     if maximisingPlayer then 
                         //let rec pruneChildNodes childNodes =
                         let rec pruneNodes childNodes alpha beta =
