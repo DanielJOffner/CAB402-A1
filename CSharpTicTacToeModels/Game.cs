@@ -5,24 +5,26 @@ namespace QUT.CSharpTicTacToe
 {
     public class Game : ITicTacToeGame<Player>
     {
-        public int size;
-        public Player player;
-        public List<List<Player>> board;
+        private int size;
+        private Player player;
+        private List<List<Player>> board;
 
         public Game(int size, Player player, List<List<Player>> board = null)
         {
             this.size = size;
             this.player = player;
-            if (board == null)
-            {
-                this.board = new List<List<Player>>();
-                PopulateEmptyBoard();
-            }
-            else
-            { 
-                this.board = new List<List<Player>>();
-                CloneBoard(board);
-            }
+            this.board = new List<List<Player>>();
+            PopulateEmptyBoard();
+            //if (board == null)
+            //{
+            //    this.board = new List<List<Player>>();
+            //    PopulateEmptyBoard();
+            //}
+            //else
+            //{ 
+            //    this.board = new List<List<Player>>();
+            //    CloneBoard(board);
+            //}
         }
 
 
@@ -41,23 +43,7 @@ namespace QUT.CSharpTicTacToe
         //***********End interface method requirements**********//
         //******************************************************//
 
-
-        // method to handle if new Game() is called with a board argument
-        // ensures that any new Game() is a true clone and does not contain memory references to existing objects 
-        private void CloneBoard(List<List<Player>> boardToClone) 
-        {
-            for (int row = 0; row < size; row++)
-            {
-                List<Player> rowLine = new List<Player>();
-                for (int col = 0; col < size; col++)
-                {
-                    rowLine.Add(boardToClone[row][col]);
-                }
-                this.board.Add(rowLine);
-            }
-        }
-
-        // method to handle if new Game() is called without a board argument 
+        
         // populate the board so that each (row,col) is occupied by Player.None
         private void PopulateEmptyBoard()
         {
@@ -166,6 +152,14 @@ namespace QUT.CSharpTicTacToe
         public void applyMove(Move move)
         {
             board[move.row][move.col] = player;
+            player = switchPlayer(player);
+        }
+
+        // undo a move 
+        // then switch back to the original players turn
+        public void undoMove(Move move) 
+        {
+            board[move.row][move.col] = Player.None;
             player = switchPlayer(player);
         }
 

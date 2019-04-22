@@ -46,17 +46,6 @@ namespace QUT.CSharpTicTacToe
             return game.Turn;
         }
 
-        private bool GameOver(Game game)
-        {
-            var outcome = game.getGameOutcome();
-            if (outcome.IsWin){
-                return true;
-            }
-            if (outcome.IsDraw){
-                return true;
-            }
-            return false;
-        }
 
         //*****************************************************************************************//
         //*************************  Helper functions for MiniMax only ****************************//
@@ -66,11 +55,11 @@ namespace QUT.CSharpTicTacToe
         private List<Move> MoveGenerator(Game game) 
         {
             List<Move> moves = new List<Move>();
-            for(int row = 0; row < game.size; row++)
+            for(int row = 0; row < game.Size; row++)
             {
-                for(int col = 0; col < game.size; col++)
+                for(int col = 0; col < game.Size; col++)
                 {
-                    if(game.board[row][col] == Player.None) 
+                    if(game.getPiece(row,col) == "") 
                     {
                         moves.Add(CreateMove(row, col));
                     }
@@ -96,6 +85,21 @@ namespace QUT.CSharpTicTacToe
             }
         }
 
+        // determine if the game is over from a given game state
+        private bool GameOver(Game game)
+        {
+            var outcome = game.getGameOutcome();
+            if (outcome.IsWin)
+            {
+                return true;
+            }
+            if (outcome.IsDraw)
+            {
+                return true;
+            }
+            return false;
+        }
+
         //*****************************************************************************************//
         //*********************  END helper functions for MiniMax only ****************************//
         //*****************************************************************************************//
@@ -119,10 +123,9 @@ namespace QUT.CSharpTicTacToe
                 // apply each move and evaluate a score for that move (child node)
                 foreach (Move move in moves) 
                 {
-                    Game newGameState = new Game(game.size, game.player, game.board); // Simulate a new game to test the move
-                    ApplyMove(newGameState, move);
-                    var nodeScore = MiniMax(newGameState, perspective, alpha, beta).Item2;
+                    var nodeScore = MiniMax(ApplyMove(game, move), perspective, alpha, beta).Item2;
                     if (nodeScore > score) { bestMove.row = move.Row; bestMove.col = move.Col; } // if the best move so far was found - update it
+                    game.undoMove(move); // undo the move to preserve the game state 
 
                     score = Math.Max(score, nodeScore); 
                     alpha = Math.Max(alpha, score);
@@ -137,10 +140,9 @@ namespace QUT.CSharpTicTacToe
                 // apply each move and evaluate a score for that move (child node)
                 foreach (Move move in moves) 
                 {
-                    Game newGameState = new Game(game.size, game.player, game.board); // Simulate a new game to test the move
-                    ApplyMove(newGameState, move);
-                    var nodeScore = MiniMax(newGameState, perspective, alpha, beta).Item2;
+                    var nodeScore = MiniMax(ApplyMove(game, move), perspective, alpha, beta).Item2;
                     if (nodeScore < score) { bestMove.row = move.Row; bestMove.col = move.Col; } // if the best move so far was found - update it
+                    game.undoMove(move); // undo the move to preserve the game state
 
                     score = Math.Min(score, nodeScore); 
                     beta = Math.Min(beta, score);
