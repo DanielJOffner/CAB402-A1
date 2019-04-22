@@ -33,6 +33,7 @@ namespace QUT
 
             foreach (var move in moves)
                 viewModel.HumanMove(viewModel.FindSquare(move.Item1, move.Item2));
+
         }
 
 
@@ -44,6 +45,7 @@ namespace QUT
             // test that the outcome is as expected ...
             Assert.AreEqual("Your turn ...", viewModel.Message);
             Assert.IsFalse(viewModel.IsGameOver);
+            //Console.WriteLine(viewModel.IsHumanTurn);
             Assert.IsTrue(viewModel.IsHumanTurn);
 
             for (int row = 0; row < 3; row++)

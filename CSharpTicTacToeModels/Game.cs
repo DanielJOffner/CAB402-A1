@@ -8,7 +8,6 @@ namespace QUT.CSharpTicTacToe
         public int size;
         public Player player;
         public List<List<Player>> board;
-        //List<List<Player>> board = null
 
         public Game(int size, Player player, List<List<Player>> board = null)
         {
@@ -20,40 +19,31 @@ namespace QUT.CSharpTicTacToe
                 PopulateEmptyBoard();
             }
             else
-            {
-                //this.board = new List<List<Player>>(board);
+            { 
                 this.board = new List<List<Player>>();
                 CloneBoard(board);
             }
         }
 
-        public bool PrintBoard(){
-            foreach(List<Player> players in board)
-            {
-                Console.Write("[");
-                foreach(Player player in players)
-                {
-                    Console.Write("[");
-                    Console.Write(player);
-                    Console.Write("]");
-                }
-                Console.Write("]");
-                Console.WriteLine("");
-            }
-            return true;
-        }
 
-
-        //**ITicTacToeGame interface method requirements**//
+        //******************************************************//
+        //*****ITicTacToeGame interface method requirements*****//
+        //******************************************************//
         public int Size => size;
+
         public Player Turn => player;
+
         public string getPiece(int row, int col)
         {
             return getPieceFromPlayer(board[row][col]);
         }
-        //** End interface method requirements**//
+        //******************************************************//
+        //***********End interface method requirements**********//
+        //******************************************************//
 
-        
+
+        // method to handle if new Game() is called with a board argument
+        // ensures that any new Game() is a true clone and does not contain memory references to existing objects 
         private void CloneBoard(List<List<Player>> boardToClone) 
         {
             for (int row = 0; row < size; row++)
@@ -67,10 +57,10 @@ namespace QUT.CSharpTicTacToe
             }
         }
 
-        // Populate the board so that each (row,col) is occupied by Player.None
+        // method to handle if new Game() is called without a board argument 
+        // populate the board so that each (row,col) is occupied by Player.None
         private void PopulateEmptyBoard()
         {
-            //populate empty board [[None,None...size],[None,None..size]...size]
             for (int row = 0; row < size; row++)
             {
                 List<Player> rowLine = new List<Player>();
@@ -82,8 +72,8 @@ namespace QUT.CSharpTicTacToe
             }
         }
 
-        //Returns a string to represent a Player on the board
-        // "X" for Cross, "O" for Nought, "" for None
+        //  returns a string to represent a Player on the board
+        //  "X" for Cross, "O" for Nought, "" for None
         private string getPieceFromPlayer(Player player)
         {
             switch (player)
@@ -99,7 +89,7 @@ namespace QUT.CSharpTicTacToe
             }
         }
 
-        //switch player after each move is applied
+        //  method to switch the current player 
         private Player switchPlayer(Player player)
         {
             switch (player)
@@ -114,17 +104,9 @@ namespace QUT.CSharpTicTacToe
             }
         }
 
-        //Apply a given move to the board at position [row][col]
-        //then switch to the other player's turn
-        public void applyMove(Move move)
-        {
-            board[move.row][move.col] = player;
-            player = switchPlayer(player);
-        }
 
-
-        //Generate a list containing all possible combinations of board coordinates
-        //Represented as list<ValueTuple<int, int>> 
+        //  returns a list containing all possible combinations of board coordinates
+        //  represented as list<ValueTuple<int, int>> 
         private List<(int row, int col)> getAllBoardCoordinates() 
         {
             List<ValueTuple<int, int>> allCoordinates = new List<ValueTuple<int, int>>();
@@ -140,8 +122,8 @@ namespace QUT.CSharpTicTacToe
         }
 
 
-        //Generate a list containing all of the lines on the board: Horizontal, Vertical and Diagonal
-        //Each line is represented as a list of coor List<ValueTuple<int,int>>
+        //  generate a list containing all of the lines on the board: Horizontal, Vertical and Diagonal
+        //  each line is represented as a list of coor List<ValueTuple<int,int>>
         private List<List<(int row, int col)>> getLines()
         { 
             var allCoordinates = getAllBoardCoordinates();
@@ -178,29 +160,41 @@ namespace QUT.CSharpTicTacToe
             return TicTacToeOutcome<Player>.Undecided;
         }
 
+
+        //  apply a given move to the board at position [row][col]
+        //  then switch to the other player's turn
+        public void applyMove(Move move)
+        {
+            board[move.row][move.col] = player;
+            player = switchPlayer(player);
+        }
+
+
+        // returns a TicTactToeOutcome<> based on the current state of the game 
+        // Win, Draw or Undecided 
         public TicTacToeOutcome<Player> getGameOutcome()
         {
             var lines = getLines();
             var outcomes = new List<TicTacToeOutcome<Player>>();
 
-            //collect all outcomes for all lines 
+            // collect all outcomes for all lines 
             foreach(var line in lines)
             {
                 outcomes.Add(checkLine(line));
             }
 
-            //if a player has one, return the win outcome 
+            // if a player has one, return the win outcome 
             foreach (var outcome in outcomes)
             {
                 if(outcome.IsWin){ return outcome; }
             }
 
-            //if all lines are a daw, return the draw outcome
+            // if all lines are a daw, return the draw outcome
             if (outcomes.TrueForAll((outcome) => outcome.IsDraw)){
                 return TicTacToeOutcome<Player>.Draw;
             } 
 
-            //if there are no wins and the game is not a daw - return the undecided outcome
+            // if there are no wins and the game is not a daw - return the undecided outcome
             return TicTacToeOutcome<Player>.Undecided;
         }
 

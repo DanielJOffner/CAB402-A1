@@ -28,7 +28,7 @@ namespace QUT.CSharpTicTacToe
         {
             NodeCounter.Reset(); 
             var result = MiniMax(game, game.Turn, -1, 1);
-            return result.Item1; //Item1 is Move 
+            return result.Item1; //Item1 is the Move in tuple returned from MiniMax: (Move,Score)  
         }
 
         public TicTacToeOutcome<Player> GameOutcome(Game game)
@@ -58,7 +58,11 @@ namespace QUT.CSharpTicTacToe
             return false;
         }
 
-        // Returns a list containing all available moves from a given game state 
+        //*****************************************************************************************//
+        //*************************  Helper functions for MiniMax only ****************************//
+        //*****************************************************************************************//
+
+        // returns a list containing all available moves from a given game state 
         private List<Move> MoveGenerator(Game game) 
         {
             List<Move> moves = new List<Move>();
@@ -75,7 +79,7 @@ namespace QUT.CSharpTicTacToe
             return moves;
         }
 
-        // Return a heuristic value for a game state 
+        // return a heuristic score for a given game state 
         // +1 for a win, -1 for a loss and 0 for a draw
         private int Heuristic(Game game, Player perspective)
         {
@@ -92,45 +96,55 @@ namespace QUT.CSharpTicTacToe
             }
         }
 
+        //*****************************************************************************************//
+        //*********************  END helper functions for MiniMax only ****************************//
+        //*****************************************************************************************//
 
+
+        // recursive MiniMax function with Alpha Beta pruning https://en.wikipedia.org/wiki/Minimax
+        // returns the best move and the score associated with that move 
         private ValueTuple<Move,int> MiniMax(Game game, Player perspective, int alpha, int beta)
         {
             NodeCounter.Increment();
             var maximisingPlayer = GetTurn(game) == perspective;
-            var moves = MoveGenerator(game);
+            var moves = MoveGenerator(game); // enumerate all possible moves from the given game state 
 
             if (GameOver(game)){
-                //Console.WriteLine(Heuristic(game, perspective));
                 return (null, Heuristic(game, perspective));
             }
             if (maximisingPlayer){
                 var score = int.MinValue;
-                var bestMove = new Move(0, 0);
-                foreach(Move move in moves)
+                var bestMove = new Move(0, 0); 
+
+                // apply each move and evaluate a score for that move (child node)
+                foreach (Move move in moves) 
                 {
-                    Game newGameState = new Game(game.size, game.player, game.board); // Simulate a new game to test the moves
+                    Game newGameState = new Game(game.size, game.player, game.board); // Simulate a new game to test the move
                     ApplyMove(newGameState, move);
                     var nodeScore = MiniMax(newGameState, perspective, alpha, beta).Item2;
-                    if (nodeScore > score) { bestMove.row = move.Row; bestMove.col = move.Col; } // If the best move so far was found - update it
+                    if (nodeScore > score) { bestMove.row = move.Row; bestMove.col = move.Col; } // if the best move so far was found - update it
 
                     score = Math.Max(score, nodeScore); 
                     alpha = Math.Max(alpha, score);
-                    if (beta <= alpha) { break; } // If there are no better moves available stop searching
+                    if (beta <= alpha) { break; } // if there are no better moves available stop searching
                 }
+
                 return (bestMove, score);
             }else{ //minimisingPlayer
                 var score = int.MaxValue;
                 var bestMove = new Move(0, 0);
-                foreach (Move move in moves)
+
+                // apply each move and evaluate a score for that move (child node)
+                foreach (Move move in moves) 
                 {
-                    Game newGameState = new Game(game.size, game.player, game.board); // Simulate a new game to test the moves
+                    Game newGameState = new Game(game.size, game.player, game.board); // Simulate a new game to test the move
                     ApplyMove(newGameState, move);
                     var nodeScore = MiniMax(newGameState, perspective, alpha, beta).Item2;
-                    if (nodeScore < score) { bestMove.row = move.Row; bestMove.col = move.Col; } // If the best move so far was found - update it
+                    if (nodeScore < score) { bestMove.row = move.Row; bestMove.col = move.Col; } // if the best move so far was found - update it
 
                     score = Math.Min(score, nodeScore); 
                     beta = Math.Min(beta, score);
-                    if (beta <= alpha) { break; } // If there are no better moves available stop searching
+                    if (beta <= alpha) { break; } // if there are no better moves available stop searching
                 }
                 return (bestMove, score);
             }

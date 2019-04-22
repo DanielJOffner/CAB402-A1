@@ -54,22 +54,34 @@ namespace QUT
                 match outcome with
                 | Win (a, b) -> a = Nought || a = Cross
                 | _ -> false)
-                
 
+
+        // create a record type representing a move on the board
         let CreateMove row col = {Row = row; Column = col}
 
+
+        // swaps the players turn
+        let swapTurn turn =
+            match turn with
+            | Nought -> Cross
+            | Cross -> Nought
+
+        // returns a new board representing the board state after a move is applied 
+        // applies a "X" or "O" at position move.row, move.column
+        let getNewBoardAfterMove board move turn =
+            board
+            |> List.map (fun (row,col,piece) -> 
+                if row = move.Row && col = move.Column 
+                then (row,col, getPiece turn) 
+                else (row,col,piece)) 
+
+
+        // returns a new GameState which represents the state of the game after a move is applied
+        // applies the move on the board and swaps the player turn 
         let ApplyMove (oldState:GameState) (move: Move) : GameState = 
             let currentPlayerTurn = oldState.Turn
-            let newPlayerTurn =
-                match oldState.Turn with
-                | Nought -> Cross
-                | Cross -> Nought
-            let newBoardState =
-                oldState.Board
-                |> List.map (fun (row,col,piece) -> 
-                    if row = move.Row && col = move.Column 
-                    then (row,col, getPiece currentPlayerTurn) 
-                    else (row,col,piece))
+            let newPlayerTurn = swapTurn oldState.Turn
+            let newBoardState = getNewBoardAfterMove oldState.Board move currentPlayerTurn
             {
             Turn = newPlayerTurn; 
             Size = oldState.Size; 
@@ -81,6 +93,12 @@ namespace QUT
         // example output : seq [seq[(0,0);(0,1)];seq[(1,0);(1,1) 
         let Lines (size:int) : seq<seq<int*int>> = 
             let allPossibleCoordinates = seq { for row in 0 .. size-1 do for col in 0 .. size-1 do yield(row, col)}
+
+            // creates a new line based on a given filter
+            // for horizontal lines: row = i .. size
+            // for vertical lines: column = i .. size
+            // for diagon lines (left to right): row = column 
+            // for diagon lines (right to left): row + column = size-1 
             let getLine filter : seq<int*int> =
                 allPossibleCoordinates
                 |> Seq.filter filter
@@ -92,18 +110,21 @@ namespace QUT
 
             Seq.concat [ horizontalLines; verticalLines; diagonalLeftToRight; diagonalRightToLeft]
 
+
+        // converts a line (sequence of row,column coordinates) to a sequence of pieces (player strings) 
+        // "O" for nought, "X" for cross and "" for no player
+        let findPlayersAlongLine game line =
+            line
+            |> Seq.map(fun (row, col) -> getPlayerStringAt game row col)
+
         // Checks a single line (specified as a sequence of (row,column) coordinates) to determine if one of the players
         // has won by filling all of those squares, or a Draw if the line contains at least one Nought and one Cross
         let CheckLine (game:GameState) (line:seq<int*int>) : TicTacToeOutcome<Player> = 
-            let lineAsPlayerStrings =
-                line
-                |> Seq.map(fun (row, col) -> getPlayerStringAt game row col) //represent line is seq<string> "", "X" or "O"
-
-            let noughtCount =
+            let lineAsPlayerStrings = findPlayersAlongLine game line
+            let noughtCount = 
                 lineAsPlayerStrings
                 |> Seq.filter(fun (playerString) -> playerString = "O")
                 |> fun noughts -> Seq.length noughts
-
             let crossCount =
                 lineAsPlayerStrings
                 |> Seq.filter(fun (playerString) -> playerString = "X")
@@ -126,7 +147,7 @@ namespace QUT
             else Undecided
 
 
- 
+        // returns a new game where all row,col coordinates are occupied by "" (no player) 
         let GameStart (firstPlayer:Player) size =
             { 
             Turn = firstPlayer; 
@@ -134,7 +155,11 @@ namespace QUT
             Board = Seq.toList <| seq {for row in 0 ..size-1 do for col in 0 .. size-1 do yield(row, col, "")}
             }                                              
 
-        //**START helper functions for MiniMax//
+        //*****************************************************************************************//
+        //*************************  Helper functions for MiniMax only ****************************//
+        //*****************************************************************************************//
+
+        // heuristic to evalute the outcome of a game  
         // +1 for a win, -1 for a loss, 0 for a draw 
         let heuristic game perspectve =
             match GameOutcome game with
@@ -144,7 +169,7 @@ namespace QUT
                 else -1
             | Undecided -> raise (System.Exception("A heuristic should only be evaluted when the game is over (not undecided)"))
 
-        // determine which player's turn it is for a given game state
+        // returns the current players turn from a given game
         let getTurn game = game.Turn
 
         // determine if a game is over
@@ -153,13 +178,15 @@ namespace QUT
             | Undecided -> false
             | _ -> true
 
-        // enumarate all possible moves from a given game situation
+        // enumarate all possible moves from a given board state 
         let moveGenerator game : seq<Move> =
             game.Board
             |> Seq.filter (fun (row,col,player) -> player = "") //find only empty spaces on the board
             |> Seq.map (fun (row, col, player) -> CreateMove row col) 
-            
-        //**END helper functions for MiniMax//
+
+        //*****************************************************************************************//
+        //*********************  END helper functions for MiniMax only ****************************//
+        //*****************************************************************************************//
 
         let MiniMax game = 
             let MiniMaxFunction = GameTheory.MiniMaxGenerator heuristic getTurn gameOver moveGenerator ApplyMove
@@ -181,7 +208,6 @@ namespace QUT
               | Some move -> move  
               | _ -> raise (System.Exception("MiniMax should not be called if there are no moves left"))    
 
-        // plus other helper functions ...
         
 
         [<AbstractClass>]
