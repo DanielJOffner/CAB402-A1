@@ -37,7 +37,7 @@ namespace QUT
             |> List.find(fun (rowInt,colInt,playerString) -> rowInt = row && colInt = col)
             |> fun(rowInt,colInt,playerString) -> playerString
 
-        // takes a sequence of outcomes seq<TicTacToeOutcome>)
+        // takes a sequence of outcomes seq<TicTacToeOutcome>
         // returns true if a payer has won or false if no player has won 
         let isGameWon outcomes =
             outcomes
@@ -55,11 +55,9 @@ namespace QUT
                 | Win (a, b) -> a = Nought || a = Cross
                 | _ -> false)
 
-
         // create a record type representing a move on the board
         let CreateMove row col = {Row = row; Column = col}
-
-
+        
         // swaps the players turn
         let swapTurn turn =
             match turn with
@@ -74,19 +72,22 @@ namespace QUT
                 if row = move.Row && col = move.Column 
                 then (row,col, getPiece turn) 
                 else (row,col,piece)) 
-
-
+                
         // returns a new GameState which represents the state of the game after a move is applied
         // applies the move on the board and swaps the player turn 
         let ApplyMove (oldState:GameState) (move: Move) : GameState = 
-            let currentPlayerTurn = oldState.Turn
             let newPlayerTurn = swapTurn oldState.Turn
-            let newBoardState = getNewBoardAfterMove oldState.Board move currentPlayerTurn
+            let newBoardState = getNewBoardAfterMove oldState.Board move oldState.Turn
             {
             Turn = newPlayerTurn; 
             Size = oldState.Size; 
             Board = newBoardState
             }
+
+        // creates a new line on the board by applying a filter to a given set of coordinates
+        let getLine coordinates filter : seq<int*int> =
+            coordinates
+            |> Seq.filter filter
 
         // Returns a sequence containing all of the lines on the board: Horizontal, Vertical and Diagonal
         // each line is a sequence of row,col coordinates 
@@ -94,25 +95,16 @@ namespace QUT
         let Lines (size:int) : seq<seq<int*int>> = 
             let allPossibleCoordinates = seq { for row in 0 .. size-1 do for col in 0 .. size-1 do yield(row, col)}
 
-            // creates a new line based on a given filter
-            // for horizontal lines: row = i .. size
-            // for vertical lines: column = i .. size
-            // for diagon lines (left to right): row = column 
-            // for diagon lines (right to left): row + column = size-1 
-            let getLine filter : seq<int*int> =
-                allPossibleCoordinates
-                |> Seq.filter filter
-
-            let horizontalLines = seq { for i in 0 .. size-1 do yield getLine (fun (row,col) -> row = i)}
-            let verticalLines = seq { for i in 0 .. size-1 do yield getLine (fun (row,col) -> col = i)}
-            let diagonalLeftToRight = seq { for i in 0 .. size-1 do yield getLine (fun (row,col) -> row = col)}
-            let diagonalRightToLeft = seq { for i in 0 .. size-1 do yield getLine (fun (row,col) -> row + col = size-1)}
+            let horizontalLines = seq { for i in 0 .. size-1 do yield getLine allPossibleCoordinates (fun (row,col) -> row = i)}
+            let verticalLines = seq { for i in 0 .. size-1 do yield getLine allPossibleCoordinates (fun (row,col) -> col = i)}
+            let diagonalLeftToRight = seq { for i in 0 .. size-1 do yield getLine allPossibleCoordinates (fun (row,col) -> row = col)}
+            let diagonalRightToLeft = seq { for i in 0 .. size-1 do yield getLine allPossibleCoordinates (fun (row,col) -> row + col = size-1)}
 
             Seq.concat [ horizontalLines; verticalLines; diagonalLeftToRight; diagonalRightToLeft]
 
 
-        // converts a line (sequence of row,column coordinates) to a sequence of pieces (player strings) 
-        // "O" for nought, "X" for cross and "" for no player
+        // returns a sequence of players along a given line 
+        // Example output: seq["";"X";"O"] 
         let findPlayersAlongLine game line =
             line
             |> Seq.map(fun (row, col) -> getPlayerStringAt game row col)
@@ -120,14 +112,14 @@ namespace QUT
         // Checks a single line (specified as a sequence of (row,column) coordinates) to determine if one of the players
         // has won by filling all of those squares, or a Draw if the line contains at least one Nought and one Cross
         let CheckLine (game:GameState) (line:seq<int*int>) : TicTacToeOutcome<Player> = 
-            let lineAsPlayerStrings = findPlayersAlongLine game line
+            let players = findPlayersAlongLine game line
             let noughtCount = 
-                lineAsPlayerStrings
-                |> Seq.filter(fun (playerString) -> playerString = "O")
+                players
+                |> Seq.filter(fun (player) -> player = "O")
                 |> fun noughts -> Seq.length noughts
             let crossCount =
-                lineAsPlayerStrings
-                |> Seq.filter(fun (playerString) -> playerString = "X")
+                players
+                |> Seq.filter(fun (player) -> player = "X")
                 |> fun crosses -> Seq.length crosses
 
             if (noughtCount = game.Size) then Win (winner = Nought, line = line)
@@ -147,12 +139,18 @@ namespace QUT
             else Undecided
 
 
-        // returns a new game where all row,col coordinates are occupied by "" (no player) 
+        // generate an empty board where each row,col is ""
+        let GetEmptyBoard size =
+            Seq.toList <| seq {for row in 0 ..size-1 do 
+                                for col in 0 .. size-1 do 
+                                    yield(row, col, "")}
+
+        // returns a new game where each square is empty
         let GameStart (firstPlayer:Player) size =
             { 
             Turn = firstPlayer; 
             Size = size; 
-            Board = Seq.toList <| seq {for row in 0 ..size-1 do for col in 0 .. size-1 do yield(row, col, "")}
+            Board = GetEmptyBoard size
             }                                              
 
         //*****************************************************************************************//

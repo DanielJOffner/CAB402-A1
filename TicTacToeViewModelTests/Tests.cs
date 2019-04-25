@@ -45,7 +45,6 @@ namespace QUT
             // test that the outcome is as expected ...
             Assert.AreEqual("Your turn ...", viewModel.Message);
             Assert.IsFalse(viewModel.IsGameOver);
-            //Console.WriteLine(viewModel.IsHumanTurn);
             Assert.IsTrue(viewModel.IsHumanTurn);
 
             for (int row = 0; row < 3; row++)

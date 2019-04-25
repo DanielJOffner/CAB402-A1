@@ -15,14 +15,14 @@ namespace QUT
 
         // type to represent a single move specified using (row, column) coordinates of the selected square
         type Move = 
-            { Row: int; Column: int }
+            { mutable Row: int; mutable Column: int }
             interface ITicTacToeMove with
                 member this.Row with get() = this.Row
                 member this.Col with get() = this.Column
 
         // type to represent the current state of the game, including the size of the game (NxN), who's turn it is and the pieces on the board
         type GameState = 
-            { Turn: Player; Size: int; Board: array<array<Player>> }
+            { mutable Turn: Player; Size: int; Board: array<array<Player>> }
             interface ITicTacToeGame<Player> with
                 member this.Turn with get()    = this.Turn
                 member this.Size with get()    = this.Size
@@ -57,13 +57,6 @@ namespace QUT
         let CreateMove row col = {Row = row; Column = col}
 
 
-        // method to copy the board into a new array
-        let copyBoard (board: array<array<Player>>) size =
-            [| for row in 0 .. size-1 -> 
-                [| for col in 0 .. size-1 ->
-                    board.[row].[col] |] |]
-
-
         // swaps the players turn
         let swapTurn turn =
             match turn with
@@ -71,18 +64,21 @@ namespace QUT
             | Cross -> Nought
             | NoPlayer -> raise (System.Exception("game should only ever be started with Nought or Cross as a player"))
 
-        // returns a new GameState which represents the state of the game after a move is applied
-        // applies the move on the board and swaps the player turn 
-        let ApplyMove (game: GameState) (move: Move) = 
-            let newBoardState = copyBoard game.Board game.Size
-            newBoardState.[move.Row].[move.Column] <- game.Turn
+        // undo a move on the board and swap back to the last player
+        let UndoMove (game: GameState) (move: Move) =
+            game.Board.[move.Row].[move.Column] <- Player.NoPlayer
+            game.Turn <- (game.Turn |> swapTurn)
 
-            // return the new game and swap the player
-            {
-            Turn = game.Turn |> swapTurn; 
-            Size = game.Size;
-            Board = newBoardState
-            }
+        // apply a given move to the board and swap the turn
+        let ApplyMove (game: GameState) (move: Move) = 
+            game.Board.[move.Row].[move.Column] <- game.Turn
+            game.Turn <- (game.Turn |> swapTurn)
+            game
+
+        // creates a new line on the board by applying a filter to a given set of coordinates
+        let getLine coordinates filter : seq<int*int> =
+            coordinates
+            |> Seq.filter filter
 
         // Returns a sequence containing all of the lines on the board: Horizontal, Vertical and Diagonal
         // each line is a sequence of row,col coordinates 
@@ -90,24 +86,15 @@ namespace QUT
         let Lines (size:int) : seq<seq<int*int>> = 
             let allPossibleCoordinates = seq { for row in 0 .. size-1 do for col in 0 .. size-1 do yield(row, col)}
 
-            // creates a new line based on a given filter
-            // for horizontal lines: row = i .. size
-            // for vertical lines: column = i .. size
-            // for diagon lines (left to right): row = column 
-            // for diagon lines (right to left): row + column = size-1 
-            let getLine filter : seq<int*int> =
-                allPossibleCoordinates
-                |> Seq.filter filter
-
-            let horizontalLines = seq { for i in 0 .. size-1 do yield getLine (fun (row,col) -> row = i)}
-            let verticalLines = seq { for i in 0 .. size-1 do yield getLine (fun (row,col) -> col = i)}
-            let diagonalLeftToRight = seq { for i in 0 .. size-1 do yield getLine (fun (row,col) -> row = col)}
-            let diagonalRightToLeft = seq { for i in 0 .. size-1 do yield getLine (fun (row,col) -> row + col = size-1)}
+            let horizontalLines = seq { for i in 0 .. size-1 do yield getLine allPossibleCoordinates (fun (row,col) -> row = i)}
+            let verticalLines = seq { for i in 0 .. size-1 do yield getLine allPossibleCoordinates (fun (row,col) -> col = i)}
+            let diagonalLeftToRight = seq { for i in 0 .. size-1 do yield getLine allPossibleCoordinates (fun (row,col) -> row = col)}
+            let diagonalRightToLeft = seq { for i in 0 .. size-1 do yield getLine allPossibleCoordinates (fun (row,col) -> row + col = size-1)}
 
             Seq.concat [ horizontalLines; verticalLines; diagonalLeftToRight; diagonalRightToLeft]
 
 
-        // converts a line (sequence of row,column coordinates) to a sequence of pieces (player strings) 
+        // finds the players along a line (sequence of row,col coordinates)
         // "O" for nought, "X" for cross and "" for no player
         let findPlayersAlongLine game line =
             line
@@ -149,7 +136,7 @@ namespace QUT
                     NoPlayer |] |]
                     
 
-        // returns a new game where all row,col coordinates are occupied by "" (no player) 
+        // returns a new game where each square is empty
         let GameStart first size = { 
             Turn = first; 
             Size = size; 
@@ -187,24 +174,84 @@ namespace QUT
                 |> Seq.map (fun (row,col) -> CreateMove row col)
                 |> Seq.filter (fun move -> game.Board.[move.Row].[move.Column] = NoPlayer)
             moves
-            
+
+        let MinInt = -2147483648
+        let MaxInt = 2147483647
+
+        let printboard (board:array<array<Player>>) =
+            for row in 0 ..2 do 
+                printf "["
+                for col in 0 .. 2 do 
+                    let piece = getPiece board.[row].[col]
+                    if piece = "X" || piece = "O" then
+                        printf "%s" piece
+                    else printf "  "
+                printfn "]"
 
         //*****************************************************************************************//
         //*********************  END helper functions for MiniMax only ****************************//
         //*****************************************************************************************//
-                
+
+
+        // recursive MiniMax function with Alpha Beta pruning https://en.wikipedia.org/wiki/Minimax
+        // returns the best move and the score associated with that move 
+        let rec MiniMax2 game perspective alpha beta = 
+            NodeCounter.Increment()
+            if gameOver game then (None, heuristic game perspective)
+            else
+                let maximisingPlayer = perspective = (getTurn game)
+                let moves = moveGenerator game |> Seq.toArray
+                let mutable _score = 0
+                let mutable _alpha = alpha
+                let mutable _beta = beta
+                let mutable _i = 0
+                let mutable bestMove = CreateMove 0 0
+                if maximisingPlayer then
+                    _score <- MinInt
+                    _i <- 0
+                    while _i < moves.Length do
+                        let move = moves.[_i]
+                        let nodeScore = MiniMax2 (ApplyMove game move) perspective _alpha beta |> fun (move, score) -> score 
+                        if nodeScore > _score then                  //  if the best move so far was found - update it
+                            bestMove.Row <- move.Row 
+                            bestMove.Column <- move.Column
+                            //bestMove <- CreateMove 0 1
+                        UndoMove game move                          //  undo the move to preserve the board state
+
+                        
+                        _score <- max _score nodeScore
+                        _alpha <- max _alpha _score
+                        if _beta <= _alpha then _i <- moves.Length  //  *if* there are no better moves available -> stop searching
+                        else _i <- _i + 1                           //  *else* -> test the the next move
+                    (Some(bestMove),_score)
+                else //Minimising player
+                    _score <- MaxInt
+                    _i <- 0
+                    while _i < moves.Length do
+                        let move = moves.[_i]
+                        let nodeScore = MiniMax2 (ApplyMove game move) perspective alpha _beta |> fun (move, score) -> score 
+                        if nodeScore < _score then                  //  if the best move so far was found - update it
+                            bestMove.Row <- move.Row 
+                            bestMove.Column <- move.Column
+                        UndoMove game move                          //  undo the move to preserve the board state
+                        
+                        _score <- min _score nodeScore
+                        _beta <- min _beta _score
+                        if _beta <= _alpha then _i <- moves.Length  //  *if* there are no better moves available -> stop searching
+                        else _i <- _i + 1                           //  *else* -> test the the next move
+                    (Some(bestMove),_score)
 
 
         let MiniMaxWithPruning game = 
-            let MiniMaxFunction = GameTheory.MiniMaxWithAlphaBetaPruningGenerator heuristic getTurn gameOver moveGenerator ApplyMove
-            let bestMove = MiniMaxFunction -1 1 game game.Turn
+            NodeCounter.Reset()
+            let bestMove = MiniMax2 game game.Turn -1 1
             match bestMove with
             | (move, score) ->
               match move with
               | Some move -> move  
               | _ -> raise (System.Exception("MiniMax should not be called if there are no moves left"))    
 
-        
+       
 
         [<AbstractClass>]
         type Model() =

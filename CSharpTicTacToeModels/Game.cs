@@ -15,16 +15,6 @@ namespace QUT.CSharpTicTacToe
             this.player = player;
             this.board = new List<List<Player>>();
             PopulateEmptyBoard();
-            //if (board == null)
-            //{
-            //    this.board = new List<List<Player>>();
-            //    PopulateEmptyBoard();
-            //}
-            //else
-            //{ 
-            //    this.board = new List<List<Player>>();
-            //    CloneBoard(board);
-            //}
         }
 
 
@@ -111,21 +101,15 @@ namespace QUT.CSharpTicTacToe
         //  generate a list containing all of the lines on the board: Horizontal, Vertical and Diagonal
         //  each line is represented as a list of coor List<ValueTuple<int,int>>
         private List<List<(int row, int col)>> getLines()
-        { 
+        {
             var allCoordinates = getAllBoardCoordinates();
-
-            //data structure for lines
             var lines = new List<List<(int row, int col)>>();
             for (int i = 0; i < size; i++)
             {
-                //get horizontal lines for row 'i'
-                lines.Add(allCoordinates.FindAll((coordinate) => coordinate.row == i));
-                //get vertical lines for col 'i'
-                lines.Add(allCoordinates.FindAll((coordinate) => coordinate.col == i));
-                //get diagoalLeftRight (row = col)
-                lines.Add(allCoordinates.FindAll((coordinate) => coordinate.row == coordinate.col));
-                //get diagonalRightLeft (row + col = board size - 1)
-                lines.Add(allCoordinates.FindAll((coordinate) => coordinate.row + coordinate.col == size-1));
+                lines.Add(allCoordinates.FindAll((coordinate) => coordinate.row == i)); // horizontal lines
+                lines.Add(allCoordinates.FindAll((coordinate) => coordinate.col == i)); // vertical lines
+                lines.Add(allCoordinates.FindAll((coordinate) => coordinate.row == coordinate.col)); //diagonal left to right
+                lines.Add(allCoordinates.FindAll((coordinate) => coordinate.row + coordinate.col == size-1)); //diagonal right to left
             }
             return lines;
         }
@@ -134,11 +118,10 @@ namespace QUT.CSharpTicTacToe
         // has won by filling all of those squares, or a Draw if the line contains at least one Nought and one Cross
         private TicTacToeOutcome<Player> checkLine(List<(int row, int col)> line)
         {
-            int crossCount = line.FindAll((c) => board[c.row][c.col] == Player.Cross).Count;
-            int noughtCount = line.FindAll((c) => board[c.row][c.col] == Player.Nought).Count;
+            int crossCount = line.FindAll((c) => board[c.row][c.col] == Player.Cross).Count; // count the # of crosses
+            int noughtCount = line.FindAll((c) => board[c.row][c.col] == Player.Nought).Count; // count the # of noughts
 
-            //TicTacToeOutcome expects Tuple<int,int> not Value Tuple (int row, int col)
-            var convertedLine = line.ConvertAll((input) => input.ToTuple());
+            var convertedLine = line.ConvertAll((input) => input.ToTuple()); // convert line from ValueTuple to Tuple to meet interface requirement
 
             if (crossCount == size){ return TicTacToeOutcome<Player>.NewWin(Player.Cross, convertedLine); } 
             if (noughtCount == size){ return TicTacToeOutcome<Player>.NewWin(Player.Nought, convertedLine); }
@@ -155,7 +138,7 @@ namespace QUT.CSharpTicTacToe
             player = switchPlayer(player);
         }
 
-        // undo a move 
+        // undo a given move to the board at position [row][col]
         // then switch back to the original players turn
         public void undoMove(Move move) 
         {
