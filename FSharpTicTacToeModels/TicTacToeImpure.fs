@@ -112,6 +112,7 @@ namespace QUT
                 lineAsPlayerStrings
                 |> Seq.filter(fun (playerString) -> playerString = "X")
                 |> fun crosses -> Seq.length crosses
+                
 
             if (noughtCount = game.Size) then Win (winner = Nought, line = line)
             else if (crossCount = game.Size) then Win (winner = Cross, line = line)
